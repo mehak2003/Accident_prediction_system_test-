@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import RiskBadge from '../components/RiskBadge';
 import { fetchClusters } from '../api';
 import { mockClusters } from '../mockData';
+import { useTheme } from '../ThemeContext';
 
 const tierColor = { Low: '#22c55e', Moderate: '#f59e0b', Severe: '#f97316', Critical: '#ef4444' };
 const TIERS = ['Low', 'Moderate', 'Severe', 'Critical'];
@@ -25,6 +26,11 @@ export default function MapView() {
   const [clusters, setClusters] = useState(mockClusters);
   const [filter, setFilter] = useState('All');
   const [live, setLive] = useState(false);
+  const { theme } = useTheme();
+
+  const tileUrl = theme === 'dark'
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
   useEffect(() => {
     fetchClusters().then(r => { setClusters(r.data); setLive(true); }).catch(() => {});
@@ -63,7 +69,8 @@ export default function MapView() {
           style={{ height: '100%', minHeight: 500 }}>
           <TileLayer
             attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url={tileUrl}
+            key={theme}
           />
           <FitBounds features={filtered} />
           {filtered.map((f, i) => {

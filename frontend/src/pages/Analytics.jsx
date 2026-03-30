@@ -75,9 +75,9 @@ export default function Analytics() {
           <ChartCard title="Accidents by Hour of Day">
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={toArr(data.hourly)}>
-                <XAxis dataKey="name" tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }} />
+                <XAxis dataKey="name" tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }} />
                 <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: '#6366f1' }} />
               </LineChart>
             </ResponsiveContainer>
@@ -89,9 +89,9 @@ export default function Analytics() {
           <ChartCard title="Accidents by Day of Week">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={toArr(data.weekly)}>
-                <XAxis dataKey="name" tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }} />
+                <XAxis dataKey="name" tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }} />
                 <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -107,7 +107,7 @@ export default function Analytics() {
                   paddingAngle={3} dataKey="value" stroke="none">
                   {toArr(data.severity).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }} />
+                <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }} />
               </PieChart>
             </ResponsiveContainer>
             <div className="flex flex-wrap gap-3 justify-center">
@@ -126,9 +126,9 @@ export default function Analytics() {
           <ChartCard title="Accidents by Weather">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={toArr(data.weather)} layout="vertical">
-                <XAxis type="number" tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} width={100} />
-                <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }} />
+                <XAxis type="number" tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={100} />
+                <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }} />
                 <Bar dataKey="value" fill="#f59e0b" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -140,9 +140,9 @@ export default function Analytics() {
           <ChartCard title="Top Accident Areas">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={toArr(data.top_areas).slice(0, 8)} layout="vertical">
-                <XAxis type="number" tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#8b8fa8', fontSize: 10 }} axisLine={false} tickLine={false} width={120} />
-                <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }} />
+                <XAxis type="number" tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" tick={{ fill: 'var(--clr-text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} width={120} />
+                <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }} />
                 <Bar dataKey="value" fill="#ec4899" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -154,9 +154,9 @@ export default function Analytics() {
           <ChartCard title="Collision Types">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={toArr(data.collision_types).slice(0, 6)} layout="vertical">
-                <XAxis type="number" tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#8b8fa8', fontSize: 10 }} axisLine={false} tickLine={false} width={140} />
-                <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }} />
+                <XAxis type="number" tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" tick={{ fill: 'var(--clr-text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} width={140} />
+                <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }} />
                 <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -168,9 +168,9 @@ export default function Analytics() {
           <ChartCard title="Top Accident Causes" className="lg:col-span-2">
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={toArr(data.causes).slice(0, 10)}>
-                <XAxis dataKey="name" tick={{ fill: '#8b8fa8', fontSize: 10, angle: -30 }} axisLine={false} tickLine={false} height={60} />
-                <YAxis tick={{ fill: '#8b8fa8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }} />
+                <XAxis dataKey="name" tick={{ fill: 'var(--clr-text-muted)', fontSize: 10, angle: -30 }} axisLine={false} tickLine={false} height={60} />
+                <YAxis tick={{ fill: 'var(--clr-text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }} />
                 <Bar dataKey="value" fill="#14b8a6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

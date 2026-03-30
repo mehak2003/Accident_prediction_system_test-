@@ -1,5 +1,6 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { FiMap, FiBarChart2, FiActivity, FiUploadCloud, FiCpu } from 'react-icons/fi';
+import { FiMap, FiBarChart2, FiActivity, FiUploadCloud, FiCpu, FiSun, FiMoon } from 'react-icons/fi';
+import { useTheme } from './ThemeContext';
 import Dashboard from './pages/Dashboard';
 import MapView from './pages/MapView';
 import Analytics from './pages/Analytics';
@@ -16,21 +17,29 @@ const navItems = [
 
 export default function App() {
   const location = useLocation();
+  const { theme, toggle } = useTheme();
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 flex flex-col border-r"
+      <aside className="w-64 shrink-0 flex flex-col border-r transition-colors duration-250"
         style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-        <div className="p-5 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-            style={{ background: 'linear-gradient(135deg, var(--clr-primary), var(--clr-danger))' }}>
-            AH
+        <div className="p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+              style={{ background: 'linear-gradient(135deg, var(--clr-primary), var(--clr-danger))' }}>
+              AH
+            </div>
+            <div>
+              <h1 className="text-sm font-semibold" style={{ color: 'var(--clr-text)' }}>AcciHotspot</h1>
+              <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>AI Prediction System</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-semibold" style={{ color: 'var(--clr-text)' }}>AcciHotspot</h1>
-            <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>AI Prediction System</p>
-          </div>
+          <button onClick={toggle} aria-label="Toggle theme"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
+            style={{ background: 'var(--clr-surface-2)', color: 'var(--clr-text-muted)' }}>
+            {theme === 'dark' ? <FiSun size={15} /> : <FiMoon size={15} />}
+          </button>
         </div>
 
         <nav className="flex-1 px-3 mt-2 space-y-1">
@@ -58,7 +67,7 @@ export default function App() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-6" style={{ background: 'var(--clr-bg)' }}>
+      <main className="flex-1 overflow-y-auto p-6 transition-colors duration-250" style={{ background: 'var(--clr-bg)' }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/map" element={<MapView />} />

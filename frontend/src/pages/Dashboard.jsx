@@ -96,10 +96,10 @@ export default function Dashboard() {
         <ChartCard title="Top Clusters by ARI Score" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={topClusters}>
-              <XAxis dataKey="name" tick={{ fill: '#8b8fa8', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#8b8fa8', fontSize: 12 }} axisLine={false} tickLine={false} domain={[0, 1]} />
-              <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }}
-                labelStyle={{ color: '#e4e6f0' }} itemStyle={{ color: '#818cf8' }} />
+              <XAxis dataKey="name" tick={{ fill: 'var(--clr-text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'var(--clr-text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} domain={[0, 1]} />
+              <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }}
+                labelStyle={{ color: 'var(--clr-text)' }} itemStyle={{ color: 'var(--clr-primary-light)' }} />
               <Bar dataKey="ari" radius={[6, 6, 0, 0]} fill="#6366f1" />
             </BarChart>
           </ResponsiveContainer>
@@ -112,8 +112,8 @@ export default function Dashboard() {
                 paddingAngle={4} dataKey="value" stroke="none">
                 {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8 }}
-                labelStyle={{ color: '#e4e6f0' }} />
+              <Tooltip contentStyle={{ background: 'var(--clr-surface)', border: '1px solid var(--clr-border)', borderRadius: 8, color: 'var(--clr-text)' }}
+                labelStyle={{ color: 'var(--clr-text)' }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="flex flex-wrap gap-3 justify-center mt-2">
