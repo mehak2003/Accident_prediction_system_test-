@@ -57,16 +57,20 @@ road.csv (Road Accident Data)
 
 Install these before you begin:
 
-| Tool    | Minimum version | Check command         |
-|---------|-----------------|-----------------------|
-| Python  | 3.10+           | `python3 --version`   |
-| Node.js | 18+             | `node --version`      |
-| npm     | 9+              | `npm --version`       |
-| git     | any             | `git --version`       |
+| Tool    | Min version | Check command        | Download                        |
+|---------|-------------|----------------------|---------------------------------|
+| Python  | 3.10+       | `python --version`   | https://www.python.org/downloads |
+| Node.js | 18+         | `node --version`     | https://nodejs.org               |
+| npm     | 9+          | `npm --version`      | included with Node.js            |
+| git     | any         | `git --version`      | https://git-scm.com              |
+
+> **Windows note:** When installing Python, check **"Add Python to PATH"** in the installer. Use `python` instead of `python3` in all commands below.
 
 ---
 
 ## Step 1 — Clone the Repository
+
+**Windows (Command Prompt / PowerShell) and macOS/Linux — same command:**
 
 ```bash
 git clone <your-repo-url>
@@ -77,40 +81,60 @@ cd Accident_prediction_system_test-
 
 ## Step 2 — Backend Setup
 
-All commands run from the `backend/` directory.
+### Windows — Command Prompt
 
-```bash
-# 1. Enter the backend directory
+```bat
 cd backend
 
-# 2. Create a Python virtual environment
-python3 -m venv venv
+python -m venv venv
 
-# 3. Activate the virtual environment
-#    macOS / Linux:
-source venv/bin/activate
-#    Windows (Command Prompt):
-# venv\Scripts\activate.bat
-#    Windows (PowerShell):
-# venv\Scripts\Activate.ps1
+venv\Scripts\activate.bat
 
-# 4. Install Python dependencies
 pip install -r requirements.txt
 ```
 
-You should see your prompt prefixed with `(venv)` after activation.
+### Windows — PowerShell
+
+```powershell
+cd backend
+
+python -m venv venv
+
+venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+```
+
+> If PowerShell blocks the activation script, run this once first:
+> `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+### macOS / Linux
+
+```bash
+cd backend
+
+python3 -m venv venv
+
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+---
+
+After activation your terminal prompt will show `(venv)` — this means the virtual environment is active. All `pip install` and `python` commands now use the isolated environment.
 
 ---
 
 ## Step 3 — Frontend Setup
 
-Open a **new terminal** and run from the project root:
+Open a **new terminal** (keep the backend terminal open).
+
+**Windows and macOS/Linux — same commands:**
 
 ```bash
-# Enter the frontend directory
 cd frontend
 
-# Install Node dependencies
 npm install
 ```
 
@@ -118,32 +142,64 @@ npm install
 
 ## Step 4 — Start the Servers
 
-You need **two terminals running simultaneously**.
+You need **two terminals running at the same time**.
+
+---
 
 ### Terminal 1 — Flask API (Backend)
 
-```bash
+#### Windows — Command Prompt
+
+```bat
 cd backend
-source venv/bin/activate     # skip if already active
+venv\Scripts\activate.bat
 python app.py
 ```
 
-Expected output:
+#### Windows — PowerShell
+
+```powershell
+cd backend
+venv\Scripts\Activate.ps1
+python app.py
+```
+
+#### macOS / Linux
+
+```bash
+cd backend
+source venv/bin/activate
+python app.py
+```
+
+Expected output (all platforms):
 ```
  * Running on http://127.0.0.1:5000
  * Debug mode: on
 ```
 
-Confirm it is healthy:
+Confirm the API is healthy:
 ```bash
 curl http://localhost:5000/api/health
 ```
-Expected (before pipeline runs — models are `false` until data is uploaded):
+Expected response (before pipeline runs — `false` until data is uploaded and pipeline is run):
 ```json
-{"status": "ok", "models_loaded": {"ari_data": false, "random_forest": false, ...}}
+{
+  "status": "ok",
+  "models_loaded": {
+    "ari_data": false,
+    "dbscan_labels": false,
+    "processed_data": false,
+    "random_forest": false
+  }
+}
 ```
 
+---
+
 ### Terminal 2 — Vite Dev Server (Frontend)
+
+**Windows and macOS/Linux — same command:**
 
 ```bash
 cd frontend
@@ -158,125 +214,207 @@ Expected output:
 
 Open **http://localhost:5173** in your browser.
 
-> All `/api/*` requests are automatically proxied from port 5173 → 5000 by Vite. No CORS setup needed.
+> Vite automatically proxies all `/api/*` requests from port 5173 → port 5000. No CORS configuration needed.
 
 ---
 
 ## Step 5 — Upload Data & Run the Pipeline
 
-The pipeline is driven entirely from the **Data Manager** page in the UI.
+### Option A — Via the UI (recommended)
 
-1. Get the dataset:
-   - Download the **RTA Dataset** from [Kaggle](https://www.kaggle.com) (Ethiopian Road Traffic Accident dataset)
-   - The file should be named `road.csv`
+1. Download the **RTA Dataset** from [Kaggle](https://www.kaggle.com) (search: "Ethiopian Road Traffic Accident Dataset") and save it as `road.csv`
 
 2. Open **http://localhost:5173/data** in your browser
 
 3. Click **Choose File**, select `road.csv`, then click **Upload**
-   - You will see a success banner and a new entry appear in the Upload History
+   - A success banner appears and a history entry is created
 
 4. Click **Run Pipeline**
-   - The pipeline runs all 5 stages (typically 30–90 seconds)
-   - The history entry updates to **Complete** with metrics: records processed, clusters found, model accuracy, ARI range
+   - All 5 stages run automatically (typically 30–90 seconds)
+   - The history entry updates to **Complete** with stats: records, clusters, accuracy, ARI range
 
-5. Navigate to the other pages — all data is now live:
-   - **Dashboard** → cluster KPIs and incident table
-   - **Hotspot Map** → circle markers at Indian city coordinates
-   - **Analytics** → EDA charts (hourly, weekly, severity, weather, etc.)
-   - **Predict** → real-time severity + ARI prediction form
+5. All pages now show live data:
+   - **Dashboard** — cluster KPIs and incident table
+   - **Hotspot Map** — circle markers at Indian city coordinates
+   - **Analytics** — EDA charts (hourly, weekly, severity, weather, etc.)
+   - **Predict** — real-time severity + ARI prediction form
 
-### Alternatively — run the pipeline from the command line
+---
 
-If you prefer not to use the UI:
+### Option B — Via command line
+
+#### Windows — Command Prompt
+
+```bat
+cd backend
+venv\Scripts\activate.bat
+copy C:\path\to\your\road.csv data\road.csv
+python run_pipeline.py
+```
+
+#### Windows — PowerShell
+
+```powershell
+cd backend
+venv\Scripts\Activate.ps1
+Copy-Item C:\path\to\your\road.csv -Destination data\road.csv
+python run_pipeline.py
+```
+
+#### macOS / Linux
 
 ```bash
 cd backend
 source venv/bin/activate
-
-# Copy your dataset first
-cp /path/to/road.csv data/road.csv
-
-# Run all 5 pipeline stages
+cp /path/to/your/road.csv data/road.csv
 python run_pipeline.py
+```
+
+Pipeline output (all platforms):
+```
+STEP 1/5 — Preprocessing ...   → data/processed_accidents.csv
+STEP 2/5 — EDA ...             → data/eda/*.json
+STEP 3/5 — DBSCAN Clustering   → models/dbscan_labels.joblib
+STEP 4/5 — Random Forest ...   → models/rf_model.joblib
+STEP 5/5 — ARI Scoring ...     → models/ari_data.joblib
 ```
 
 ---
 
 ## Verify Everything Works
 
-After the pipeline completes, run these smoke tests:
+Run these from any terminal after the pipeline completes:
 
 ```bash
-# Health check — all models should now be true
+# All models should now show true
 curl http://localhost:5000/api/health
 
-# Clusters GeoJSON — should show N clusters
-curl http://localhost:5000/api/clusters | python3 -c \
-  "import json,sys; d=json.load(sys.stdin); print(len(d['features']), 'clusters')"
-
-# EDA hourly distribution
-curl http://localhost:5000/api/eda/hourly
+# Should print "N clusters"
+curl http://localhost:5000/api/clusters | python -c "import json,sys; d=json.load(sys.stdin); print(len(d['features']), 'clusters')"
 
 # Upload history
 curl http://localhost:5000/api/uploads
 
-# Test a prediction (cluster 1, rainy evening)
-curl -X POST http://localhost:5000/api/predict \
-  -H "Content-Type: application/json" \
-  -d '{"cluster_id": 1, "hour": 18, "day_of_week": 4, "weather": "Rain", "num_vehicles": 2}'
+# EDA data
+curl http://localhost:5000/api/eda/hourly
+
+# Test a prediction
+curl -X POST http://localhost:5000/api/predict ^
+  -H "Content-Type: application/json" ^
+  -d "{\"cluster_id\": 1, \"hour\": 18, \"day_of_week\": 4, \"weather\": \"Rain\", \"num_vehicles\": 2}"
 ```
 
-| Page         | URL                              | What to check                                    |
-|--------------|----------------------------------|--------------------------------------------------|
-| Dashboard    | http://localhost:5173/           | Cluster count, incident counts, ARI scores       |
-| Hotspot Map  | http://localhost:5173/map        | Circle markers at Indian city locations          |
-| Analytics    | http://localhost:5173/analytics  | EDA charts populated with real data              |
-| Predict      | http://localhost:5173/predict    | Cluster dropdown populated; predictions work     |
-| Data Manager | http://localhost:5173/data       | Upload history entry shows Complete + metrics    |
+> On macOS/Linux replace the last command's `^` line continuation with `\` and use single quotes around the JSON.
+
+| Page         | URL                              | What to check                                 |
+|--------------|----------------------------------|-----------------------------------------------|
+| Dashboard    | http://localhost:5173/           | Cluster count, incident counts, ARI scores    |
+| Hotspot Map  | http://localhost:5173/map        | Circle markers at Indian city locations       |
+| Analytics    | http://localhost:5173/analytics  | EDA charts populated with real data           |
+| Predict      | http://localhost:5173/predict    | Cluster dropdown populated; predictions work  |
+| Data Manager | http://localhost:5173/data       | History entry shows Complete + metrics        |
 
 ---
 
 ## Restarting / Resetting
 
-### Restart only the backend
+### Restart the backend server
+
+#### Windows — Command Prompt
+
+```bat
+:: Kill whatever is running on port 5000
+for /f "tokens=5" %a in ('netstat -aon ^| findstr :5000') do taskkill /F /PID %a
+
+cd backend
+venv\Scripts\activate.bat
+python app.py
+```
+
+#### Windows — PowerShell
+
+```powershell
+# Kill whatever is running on port 5000
+$pid = (netstat -aon | Select-String ":5000").ToString().Trim().Split()[-1]
+if ($pid) { taskkill /F /PID $pid }
+
+cd backend
+venv\Scripts\Activate.ps1
+python app.py
+```
+
+#### macOS / Linux
 
 ```bash
-# Find and kill the process on port 5000
 lsof -ti :5000 | xargs kill -9
-
-# Start it again
 cd backend
 source venv/bin/activate
 python app.py
 ```
 
-### Restart only the frontend
+---
+
+### Restart the frontend server
+
+Stop with **Ctrl+C** in the Vite terminal, then:
 
 ```bash
-# Stop with Ctrl+C in the Vite terminal, then:
 cd frontend
 npm run dev
 ```
 
+---
+
 ### Full reset — wipe all data and start fresh
+
+#### Windows — Command Prompt
+
+```bat
+cd backend
+
+del /q data\road.csv 2>nul
+del /q data\processed_accidents.csv 2>nul
+del /q data\upload_history.json 2>nul
+rmdir /s /q data\eda 2>nul
+del /q models\*.joblib 2>nul
+
+for /f "tokens=5" %a in ('netstat -aon ^| findstr :5000') do taskkill /F /PID %a
+
+venv\Scripts\activate.bat
+python app.py
+```
+
+#### Windows — PowerShell
+
+```powershell
+cd backend
+
+Remove-Item -ErrorAction SilentlyContinue data\road.csv
+Remove-Item -ErrorAction SilentlyContinue data\processed_accidents.csv
+Remove-Item -ErrorAction SilentlyContinue data\upload_history.json
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue data\eda
+Remove-Item -ErrorAction SilentlyContinue models\*.joblib
+
+$pid = (netstat -aon | Select-String ":5000").ToString().Trim().Split()[-1]
+if ($pid) { taskkill /F /PID $pid }
+
+venv\Scripts\Activate.ps1
+python app.py
+```
+
+#### macOS / Linux
 
 ```bash
 cd backend
-
-# Remove all generated files
-rm -f data/road.csv
-rm -f data/processed_accidents.csv
-rm -f data/upload_history.json
+rm -f data/road.csv data/processed_accidents.csv data/upload_history.json
 rm -rf data/eda
 rm -f models/*.joblib
-
-# Restart backend
 lsof -ti :5000 | xargs kill -9
 source venv/bin/activate
 python app.py
 ```
 
-After a full reset, go to **Data Manager** and upload your CSV again to rebuild everything.
+After a full reset go to **http://localhost:5173/data**, upload `road.csv`, and click **Run Pipeline** to rebuild everything.
 
 ---
 
@@ -284,12 +422,12 @@ After a full reset, go to **Data Manager** and upload your CSV again to rebuild 
 
 ### DBSCAN Clustering
 
-| Parameter     | Value     | Notes                                                      |
-|---------------|-----------|------------------------------------------------------------|
+| Parameter     | Value     | Notes                                                           |
+|---------------|-----------|-----------------------------------------------------------------|
 | `eps`         | 0.005 rad | ~32 km radius — groups accidents within a city, separates cities |
-| `min_samples` | 15        | Min accidents required to form a Black Spot cluster        |
-| `metric`      | haversine | Geographically accurate great-circle distances             |
-| `algorithm`   | ball_tree | Efficient spatial indexing for haversine                   |
+| `min_samples` | 15        | Min accidents required to form a Black Spot cluster             |
+| `metric`      | haversine | Geographically accurate great-circle distances                  |
+| `algorithm`   | ball_tree | Efficient spatial indexing for haversine                        |
 
 ### Random Forest features (17)
 
@@ -301,20 +439,18 @@ Road_allignment_Enc, Types_of_Junction_Enc, Lanes_or_Medians_Enc,
 Driving_experience_Enc, Age_band_of_driver_Enc, Cluster_ID
 ```
 
-`Cluster_ID` is included so the model is spatially aware — severity patterns differ between city types.
-
 ### Accident Risk Index
 
 ```
 ARI = W1 × Severity_Score + W2 × Density_Score + W3 × Environmental_Factor
 ```
 
-| Component             | Derivation                                          |
-|-----------------------|-----------------------------------------------------|
-| Severity_Score        | Mean severity in cluster, normalised to [0, 1]      |
-| Density_Score         | Cluster incident count / max count across clusters  |
-| Environmental_Factor  | Weather risk score (Clear = 0.15 … Snow = 0.85)    |
-| W1, W2, W3            | Derived from RF feature importances (sum to 1)      |
+| Component            | Derivation                                         |
+|----------------------|----------------------------------------------------|
+| Severity_Score       | Mean severity in cluster, normalised to [0, 1]     |
+| Density_Score        | Cluster incident count / max count across clusters |
+| Environmental_Factor | Weather risk score (Clear = 0.15 … Snow = 0.85)   |
+| W1, W2, W3           | Derived from RF feature importances (sum to 1)     |
 
 | Risk Tier | ARI Range   | Map colour |
 |-----------|-------------|------------|
@@ -325,20 +461,20 @@ ARI = W1 × Severity_Score + W2 × Density_Score + W3 × Environmental_Factor
 
 ### Geocoding — area type → Indian city
 
-| Area type           | Mapped city      |
-|---------------------|------------------|
-| Office areas        | Delhi NCR        |
-| Residential areas   | Mumbai           |
-| Church areas        | Bangalore        |
-| Industrial areas    | Ahmedabad        |
-| School areas        | Chennai          |
-| Recreational areas  | Kolkata          |
-| Hospital areas      | Jaipur           |
-| Market areas        | Hyderabad        |
-| Rural village areas | Nagpur           |
-| Outside rural areas | Varanasi         |
-| Other               | Pune             |
-| Unknown             | Centre of India  |
+| Area type           | Mapped city     |
+|---------------------|-----------------|
+| Office areas        | Delhi NCR       |
+| Residential areas   | Mumbai          |
+| Church areas        | Bangalore       |
+| Industrial areas    | Ahmedabad       |
+| School areas        | Chennai         |
+| Recreational areas  | Kolkata         |
+| Hospital areas      | Jaipur          |
+| Market areas        | Hyderabad       |
+| Rural village areas | Nagpur          |
+| Outside rural areas | Varanasi        |
+| Other               | Pune            |
+| Unknown             | Centre of India |
 
 ---
 
@@ -346,36 +482,36 @@ ARI = W1 × Severity_Score + W2 × Density_Score + W3 × Environmental_Factor
 
 ### Core
 
-| Method | Endpoint                    | Description                                     |
-|--------|-----------------------------|-------------------------------------------------|
-| GET    | `/api/health`               | Server and model load status                    |
-| GET    | `/api/clusters`             | All clusters as GeoJSON FeatureCollection       |
-| GET    | `/api/clusters/<id>`        | Single cluster detail                           |
-| POST   | `/api/predict`              | Severity + ARI prediction for given conditions  |
+| Method | Endpoint             | Description                                    |
+|--------|----------------------|------------------------------------------------|
+| GET    | `/api/health`        | Server and model load status                   |
+| GET    | `/api/clusters`      | All clusters as GeoJSON FeatureCollection      |
+| GET    | `/api/clusters/<id>` | Single cluster detail                          |
+| POST   | `/api/predict`       | Severity + ARI prediction for given conditions |
 
 ### EDA
 
-| Method | Endpoint                       | Returns                          |
-|--------|--------------------------------|----------------------------------|
-| GET    | `/api/eda/hourly`              | `[{hour, count}]` × 24          |
-| GET    | `/api/eda/weekly`              | `[{day, count}]` × 7            |
-| GET    | `/api/eda/severity`            | `[{label, count}]`              |
-| GET    | `/api/eda/weather`             | `[{weather, count}]`            |
-| GET    | `/api/eda/top_areas`           | `[{area, count}]`               |
-| GET    | `/api/eda/collision_types`     | `[{collision_type, count}]`     |
-| GET    | `/api/eda/causes`              | `[{cause, count}]`              |
-| GET    | `/api/eda/severity_by_weather` | Cross-tab array                 |
+| Method | Endpoint                       | Returns                                         |
+|--------|--------------------------------|-------------------------------------------------|
+| GET    | `/api/eda/hourly`              | `[{hour, count}]` × 24                         |
+| GET    | `/api/eda/weekly`              | `[{day, count}]` × 7                           |
+| GET    | `/api/eda/severity`            | `[{label, count}]`                             |
+| GET    | `/api/eda/weather`             | `[{weather, count}]`                           |
+| GET    | `/api/eda/top_areas`           | `[{area, count}]`                              |
+| GET    | `/api/eda/collision_types`     | `[{collision_type, count}]`                    |
+| GET    | `/api/eda/causes`              | `[{cause, count}]`                             |
+| GET    | `/api/eda/severity_by_weather` | Cross-tab array                                |
 | GET    | `/api/model/metrics`           | Accuracy, confusion matrix, feature importances |
 
 ### Upload & Pipeline
 
-| Method | Endpoint                  | Description                                                 |
-|--------|---------------------------|-------------------------------------------------------------|
-| POST   | `/api/upload`             | Upload a CSV file (multipart/form-data, field name: `file`) |
-| POST   | `/api/pipeline/run`       | Run full ML pipeline (blocking, ~30–90 s)                   |
-| GET    | `/api/uploads`            | Full upload history (newest first)                          |
-| DELETE | `/api/uploads/<id>`       | Remove a history entry                                      |
-| DELETE | `/api/uploads/<id>?clear_artifacts=true` | Remove history entry + wipe all model and EDA files |
+| Method | Endpoint                                 | Description                                          |
+|--------|------------------------------------------|------------------------------------------------------|
+| POST   | `/api/upload`                            | Upload CSV (multipart/form-data, field name: `file`) |
+| POST   | `/api/pipeline/run`                      | Run full ML pipeline (blocking, ~30–90 s)            |
+| GET    | `/api/uploads`                           | Full upload history (newest first)                   |
+| DELETE | `/api/uploads/<id>`                      | Remove a history entry only                          |
+| DELETE | `/api/uploads/<id>?clear_artifacts=true` | Remove history entry + wipe all model/EDA files      |
 
 ### Prediction request body
 
@@ -424,13 +560,13 @@ ARI = W1 × Severity_Score + W2 × Density_Score + W3 × Environmental_Factor
 
 All config lives in `backend/config.py`. Override with environment variables:
 
-| Variable             | Default   | Description                          |
-|----------------------|-----------|--------------------------------------|
-| `DBSCAN_EPS`         | `0.005`   | Cluster radius in radians (~32 km)   |
-| `DBSCAN_MIN_SAMPLES` | `15`      | Min accidents to form a cluster      |
-| `RF_N_ESTIMATORS`    | `200`     | Number of trees in Random Forest     |
-| `RF_MAX_DEPTH`       | `20`      | Maximum tree depth                   |
-| `RF_TEST_SIZE`       | `0.2`     | Test set fraction (stratified split) |
+| Variable             | Default | Description                          |
+|----------------------|---------|--------------------------------------|
+| `DBSCAN_EPS`         | `0.005` | Cluster radius in radians (~32 km)   |
+| `DBSCAN_MIN_SAMPLES` | `15`    | Min accidents to form a cluster      |
+| `RF_N_ESTIMATORS`    | `200`   | Number of trees in Random Forest     |
+| `RF_MAX_DEPTH`       | `20`    | Maximum tree depth                   |
+| `RF_TEST_SIZE`       | `0.2`   | Test set fraction (stratified split) |
 
 ---
 
@@ -445,9 +581,9 @@ Accident_prediction_system_test-/
 │   ├── requirements.txt             # Python dependencies
 │   ├── run_pipeline.py              # CLI pipeline runner (alternative to UI)
 │   ├── data/
-│   │   ├── road.csv                 # Raw dataset (place here or upload via UI)
+│   │   ├── road.csv                 # Raw dataset (upload via UI or place here)
 │   │   ├── processed_accidents.csv  # Generated by pipeline step 1
-│   │   ├── upload_history.json      # Upload history (auto-created)
+│   │   ├── upload_history.json      # Upload log (auto-created)
 │   │   └── eda/                     # Generated EDA JSON files
 │   ├── models/                      # Serialised ML artefacts (generated)
 │   │   ├── rf_model.joblib
