@@ -14,24 +14,7 @@
     <link rel="dns-prefetch" href="https://b.basemaps.cartocdn.com" />
     <link rel="dns-prefetch" href="https://c.basemaps.cartocdn.com" />
     
-    <!-- Critical CSS for initial render -->
-    <style>
-      :root{--clr-bg:#0f1117;--clr-surface:#1a1d27;--clr-surface-2:#242836;--clr-border:#2e3348;--clr-text:#e4e6f0;--clr-text-muted:#8b8fa8;--clr-primary:#6366f1;--clr-primary-light:#818cf8;--clr-danger:#ef4444;--clr-warning:#f59e0b;--clr-success:#22c55e;--clr-info:#3b82f6}
-      *{box-sizing:border-box}
-      html,body{margin:0;padding:0;height:100%;overflow-x:hidden}
-      body{font-family:system-ui,-apple-system,sans-serif;background:var(--clr-bg);color:var(--clr-text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeSpeed}
-      #root{min-height:100vh;display:flex;width:100%}
-      .flex{display:flex}
-      .h-screen{height:100vh}
-      .overflow-hidden{overflow:hidden}
-      .w-full{width:100%}
-      img{content-visibility:auto}
-      @keyframes spin{to{transform:rotate(360deg)}}
-      .animate-spin{animation:spin 1s linear infinite}
-      @media (max-width:768px){body{font-size:14px}}
-    </style>
-    
-    <!-- Preload critical fonts -->
+    <!-- Async font loading (performance optimization) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
     

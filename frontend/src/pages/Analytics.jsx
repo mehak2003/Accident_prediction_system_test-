@@ -6,10 +6,10 @@ import {
 import ChartCard from '../components/ChartCard';
 import { fetchEda, fetchModelMetrics } from '../api';
 
-// Polyfill for requestIdleCallback
-const requestIdleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
-
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#8b5cf6', '#14b8a6'];
+
+// Polyfill for requestIdleCallback (performance optimization - non-visual)
+const requestIdleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
 
 const NORMALIZERS = {
   hourly:              (d) => Array.isArray(d) ? Object.fromEntries(d.map(r => [r.hour,           r.count])) : d,
@@ -22,24 +22,12 @@ const NORMALIZERS = {
   severity_by_weather: (d) => d,
 };
 
-const MetricCard = memo(({ title, value, subtitle, color }) => (
-  <div className="rounded-xl sm:rounded-2xl p-5 sm:p-6 border text-center"
-    style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-    <p className="text-xs sm:text-sm uppercase tracking-wider mb-2" style={{ color: 'var(--clr-text-muted)' }}>{title}</p>
-    <p className="text-3xl sm:text-4xl font-bold" style={{ color }}>{value}</p>
-    {subtitle && <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--clr-text-muted)' }}>{subtitle}</p>}
-  </div>
-));
-
-MetricCard.displayName = 'MetricCard';
-
 function Analytics() {
   const [data, setData] = useState({});
   const [metrics, setMetrics] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    // Load critical data first
+    // Performance optimization: load critical charts first
     const criticalEndpoints = ['severity', 'hourly'];
     
     Promise.allSettled([
@@ -53,10 +41,9 @@ function Analytics() {
         }
       });
       if (Object.keys(d).length) setData(d);
-      setIsInitialLoad(false);
     });
     
-    // Load remaining data when idle
+    // Defer remaining charts (performance optimization - non-visual)
     requestIdleCallback(() => {
       const remainingEndpoints = ['weekly', 'weather', 'top_areas', 'collision_types', 'causes'];
       Promise.allSettled([
@@ -82,39 +69,40 @@ function Analytics() {
   const toArr = useCallback((obj) => obj ? Object.entries(obj).map(([name, value]) => ({ name, value })) : [], []);
 
   return (
-    <div className="space-y-4 sm:space-y-6 lg:space-y-8 max-w-[1600px] mx-auto">
-      {/* Header */}
+    <div className="space-y-6">
       <div>
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold" style={{ color: 'var(--clr-text)' }}>Analytics</h2>
-        <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--clr-text-muted)' }}>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--clr-text)' }}>Analytics</h2>
+        <p className="text-sm" style={{ color: 'var(--clr-text-muted)' }}>
           Exploratory Data Analysis & Model Performance
         </p>
       </div>
 
       {/* Model metrics */}
       {metrics && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-          <MetricCard 
-            title="Accuracy" 
-            value={`${(metrics.accuracy * 100).toFixed(1)}%`}
-            color="var(--clr-success)"
-          />
-          <MetricCard 
-            title="Model" 
-            value="Random Forest"
-            subtitle="200 estimators"
-            color="var(--clr-primary-light)"
-          />
-          <MetricCard 
-            title="Train/Test Split" 
-            value="80/20"
-            color="var(--clr-info)"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="rounded-xl p-5 border text-center"
+            style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
+            <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--clr-text-muted)' }}>Accuracy</p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--clr-success)' }}>
+              {(metrics.accuracy * 100).toFixed(1)}%
+            </p>
+          </div>
+          <div className="rounded-xl p-5 border text-center"
+            style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
+            <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--clr-text-muted)' }}>Model</p>
+            <p className="text-lg font-bold" style={{ color: 'var(--clr-primary-light)' }}>Random Forest</p>
+            <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>200 estimators</p>
+          </div>
+          <div className="rounded-xl p-5 border text-center"
+            style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
+            <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--clr-text-muted)' }}>Train/Test Split</p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--clr-info)' }}>80/20</p>
+          </div>
         </div>
       )}
 
       {/* Charts grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Hourly distribution */}
         {data.hourly && (
           <ChartCard title="Accidents by Hour of Day">
@@ -157,8 +145,8 @@ function Analytics() {
             </ResponsiveContainer>
             <div className="flex flex-wrap gap-3 justify-center mt-2">
               {toArr(data.severity).map((d, i) => (
-                <span key={d.name} className="flex items-center gap-1.5 text-xs sm:text-sm" style={{ color: 'var(--clr-text-muted)' }}>
-                  <span className="w-3 h-3 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                <span key={d.name} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--clr-text-muted)' }}>
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                   {d.name}
                 </span>
               ))}
