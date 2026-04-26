@@ -21,13 +21,15 @@ export default function App() {
   const { theme, toggle } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={closeSidebar}
         />
       )}
 
@@ -49,11 +51,18 @@ export default function App() {
               <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>AI Prediction System</p>
             </div>
           </div>
-          {/* Close button - mobile only */}
-          <button onClick={() => setSidebarOpen(false)} className="md:hidden"
-            aria-label="Close menu">
-            <FiX size={20} style={{ color: 'var(--clr-text-muted)' }} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={toggle} aria-label="Toggle theme"
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
+              style={{ background: 'var(--clr-surface-2)', color: 'var(--clr-text-muted)' }}>
+              {theme === 'dark' ? <FiSun size={15} /> : <FiMoon size={15} />}
+            </button>
+            <button onClick={closeSidebar} aria-label="Close menu"
+              className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
+              style={{ background: 'var(--clr-surface-2)', color: 'var(--clr-text-muted)' }}>
+              <FiX size={15} />
+            </button>
+          </div>
         </div>
 
         <nav className="flex-1 px-3 mt-2 space-y-1 overflow-y-auto">
@@ -61,7 +70,7 @@ export default function App() {
             const active = location.pathname === to;
             return (
               <NavLink key={to} to={to}
-                onClick={() => setSidebarOpen(false)}
+                onClick={closeSidebar}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200"
                 style={{
                   background: active ? 'rgba(99,102,241,.15)' : 'transparent',
@@ -74,15 +83,6 @@ export default function App() {
           })}
         </nav>
 
-        {/* Theme toggle - desktop only */}
-        <div className="p-4 hidden md:block">
-          <button onClick={toggle} aria-label="Toggle theme"
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
-            style={{ background: 'var(--clr-surface-2)', color: 'var(--clr-text-muted)' }}>
-            {theme === 'dark' ? <FiSun size={15} /> : <FiMoon size={15} />}
-          </button>
-        </div>
-
         <div className="p-4 m-3 rounded-xl text-xs" style={{ background: 'var(--clr-surface-2)' }}>
           <p style={{ color: 'var(--clr-text-muted)' }}>Powered by</p>
           <p className="font-medium mt-0.5" style={{ color: 'var(--clr-text)' }}>DBSCAN + Random Forest</p>
@@ -91,9 +91,9 @@ export default function App() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Mobile header - only visible on mobile */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b"
+        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b shrink-0"
           style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
           <button onClick={() => setSidebarOpen(true)}
             className="w-9 h-9 rounded-lg flex items-center justify-center"
@@ -101,7 +101,7 @@ export default function App() {
             aria-label="Open menu">
             <FiMenu size={20} style={{ color: 'var(--clr-text)' }} />
           </button>
-          
+
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs"
               style={{ background: 'linear-gradient(135deg, var(--clr-primary), var(--clr-danger))' }}>
@@ -118,7 +118,7 @@ export default function App() {
         </header>
 
         {/* Main content area - responsive padding */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 transition-colors duration-250" 
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 transition-colors duration-250"
           style={{ background: 'var(--clr-bg)' }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />

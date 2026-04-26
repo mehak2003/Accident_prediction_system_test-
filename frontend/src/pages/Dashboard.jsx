@@ -99,7 +99,7 @@ function Dashboard() {
           </p>
         </div>
         {health && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium self-start sm:self-auto"
             style={{
               background: health.status === 'ok' ? '#22c55e15' : '#ef444415',
               color: health.status === 'ok' ? '#22c55e' : '#ef4444',

@@ -134,7 +134,7 @@ function MapView() {
             {filtered.length} clusters displayed
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex flex-wrap gap-2">
           {['All', ...TIERS].map(t => (
             <button key={t} onClick={() => handleFilterChange(t)}
               className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all"

@@ -20,10 +20,10 @@ from routes.upload import upload_bp
 
 def create_app():
     app = Flask(__name__)
-    
+
     # Enable gzip compression for all responses
     Compress(app)
-    
+
     # Production configuration
     app.config['JSON_SORT_KEYS'] = False
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
@@ -33,7 +33,7 @@ def create_app():
     ]
     app.config['COMPRESS_LEVEL'] = 6
     app.config['COMPRESS_MIN_SIZE'] = 500
-    
+
     # Configure CORS for production and development
     allowed_origins = [
         "http://localhost:5173",
@@ -41,11 +41,11 @@ def create_app():
         "http://localhost:3000",
         os.getenv("FRONTEND_URL", ""),  # Production frontend URL
     ]
-    
+
     # Remove empty strings from allowed origins
     allowed_origins = [origin for origin in allowed_origins if origin]
-    
-    CORS(app, 
+
+    CORS(app,
          origins=allowed_origins,
          supports_credentials=True,
          allow_headers=["Content-Type", "Authorization"],

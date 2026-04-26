@@ -319,7 +319,7 @@ function DataManager() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
                       {/* Status badge */}
                       <span className="text-xs font-bold px-3 py-1.5 rounded-full"
                         style={{ background: s.bg, color: s.color }}>
