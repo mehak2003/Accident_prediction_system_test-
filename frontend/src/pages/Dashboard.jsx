@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, memo } from 'react';
 import { FiAlertTriangle, FiMapPin, FiShield, FiTrendingUp } from 'react-icons/fi';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StatCard from '../components/StatCard';
@@ -8,62 +8,98 @@ import { fetchClusters, fetchEdaSummary, fetchHealth } from '../api';
 
 const PIE_COLORS = ['#22c55e', '#f59e0b', '#f97316', '#ef4444'];
 
-export default function Dashboard() {
+// Polyfill for requestIdleCallback (performance optimization - non-visual)
+const requestIdleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+
+const ClusterRow = memo(({ feature, index }) => {
+  const p = feature.properties || {};
+  const [lon, lat] = feature.geometry?.coordinates || [0, 0];
+  
+  return (
+    <tr className="border-t" style={{ borderColor: 'var(--clr-border)' }}>
+      <td className="py-2.5 px-2 sm:px-3 font-medium whitespace-nowrap">C-{p.Cluster_ID}</td>
+      <td className="py-2.5 px-2 sm:px-3 whitespace-nowrap">{p.Incident_Count}</td>
+      <td className="py-2.5 px-2 sm:px-3 font-mono whitespace-nowrap">{(p.ARI_Score || 0).toFixed(3)}</td>
+      <td className="py-2.5 px-2 sm:px-3 whitespace-nowrap"><RiskBadge tier={p.Risk_Tier} /></td>
+      <td className="py-2.5 px-2 sm:px-3 whitespace-nowrap text-xs sm:text-sm" style={{ color: 'var(--clr-text-muted)' }}>
+        {lat?.toFixed(4)}, {lon?.toFixed(4)}
+      </td>
+    </tr>
+  );
+});
+
+ClusterRow.displayName = 'ClusterRow';
+
+function Dashboard() {
   const [clusters, setClusters] = useState(null);
   const [summary, setSummary] = useState(null);
   const [health, setHealth] = useState(null);
 
   useEffect(() => {
-    Promise.allSettled([
-      fetchClusters().then(r => r.data),
-      fetchEdaSummary().then(r => r.data),
-      fetchHealth().then(r => r.data),
-    ]).then(([c, s, h]) => {
-      if (c.status === 'fulfilled') setClusters(c.value);
-      if (s.status === 'fulfilled') setSummary(s.value);
-      if (h.status === 'fulfilled') setHealth(h.value);
-    });
+    // Performance optimization: prioritize critical data
+    fetchClusters()
+      .then(r => setClusters(r.data))
+      .catch(() => {});
+    
+    // Defer non-critical data (performance optimization - non-visual)
+    requestIdleCallback(() => {
+      Promise.allSettled([
+        fetchEdaSummary().then(r => r.data),
+        fetchHealth().then(r => r.data),
+      ]).then(([s, h]) => {
+        if (s.status === 'fulfilled') setSummary(s.value);
+        if (h.status === 'fulfilled') setHealth(h.value);
+      });
+    }, { timeout: 2000 });
   }, []);
 
   const features = clusters?.features || [];
-  const totalClusters = features.length;
-  const criticalCount = features.filter(f => f.properties?.Risk_Tier === 'Critical').length;
-  const totalIncidents = features.reduce((s, f) => s + (f.properties?.Incident_Count || 0), 0);
-  const avgAri = totalClusters
-    ? (features.reduce((s, f) => s + (f.properties?.ARI_Score || 0), 0) / totalClusters).toFixed(3)
-    : '—';
+  
+  // Performance optimization: useMemo (non-visual)
+  const stats = useMemo(() => {
+    const totalClusters = features.length;
+    const criticalCount = features.filter(f => f.properties?.Risk_Tier === 'Critical').length;
+    const totalIncidents = features.reduce((s, f) => s + (f.properties?.Incident_Count || 0), 0);
+    const avgAri = totalClusters
+      ? (features.reduce((s, f) => s + (f.properties?.ARI_Score || 0), 0) / totalClusters).toFixed(3)
+      : '—';
+    
+    return { totalClusters, criticalCount, totalIncidents, avgAri };
+  }, [features]);
 
-  // Risk tier distribution for pie chart
-  const tierCounts = {};
-  features.forEach(f => {
-    const t = f.properties?.Risk_Tier || 'Low';
-    tierCounts[t] = (tierCounts[t] || 0) + 1;
-  });
-  const pieData = ['Low', 'Moderate', 'Severe', 'Critical']
-    .filter(t => tierCounts[t])
-    .map((t, i) => ({ name: t, value: tierCounts[t] }));
+  const pieData = useMemo(() => {
+    const tierCounts = {};
+    features.forEach(f => {
+      const t = f.properties?.Risk_Tier || 'Low';
+      tierCounts[t] = (tierCounts[t] || 0) + 1;
+    });
+    return ['Low', 'Moderate', 'Severe', 'Critical']
+      .filter(t => tierCounts[t])
+      .map((t) => ({ name: t, value: tierCounts[t] }));
+  }, [features]);
 
-  // Top 5 clusters by ARI
-  const topClusters = [...features]
-    .sort((a, b) => (b.properties?.ARI_Score || 0) - (a.properties?.ARI_Score || 0))
-    .slice(0, 6)
-    .map(f => ({
-      name: `C-${f.properties?.Cluster_ID}`,
-      ari: +(f.properties?.ARI_Score || 0).toFixed(3),
-      tier: f.properties?.Risk_Tier,
-    }));
+  const topClusters = useMemo(() => {
+    return [...features]
+      .sort((a, b) => (b.properties?.ARI_Score || 0) - (a.properties?.ARI_Score || 0))
+      .slice(0, 6)
+      .map(f => ({
+        name: `C-${f.properties?.Cluster_ID}`,
+        ari: +(f.properties?.ARI_Score || 0).toFixed(3),
+        tier: f.properties?.Risk_Tier,
+      }));
+  }, [features]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold" style={{ color: 'var(--clr-text)' }}>Dashboard</h2>
-          <p className="text-sm" style={{ color: 'var(--clr-text-muted)' }}>
+          <h2 className="text-lg md:text-xl font-bold" style={{ color: 'var(--clr-text)' }}>Dashboard</h2>
+          <p className="text-xs md:text-sm" style={{ color: 'var(--clr-text-muted)' }}>
             AI-Based Accident Hotspot Prediction Overview
           </p>
         </div>
         {health && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium self-start sm:self-auto"
             style={{
               background: health.status === 'ok' ? '#22c55e15' : '#ef444415',
               color: health.status === 'ok' ? '#22c55e' : '#ef4444',
@@ -76,20 +112,20 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={<FiMapPin size={20} />} label="Total Clusters" value={totalClusters}
+      {/* Stat cards - responsive grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <StatCard icon={<FiMapPin size={20} />} label="Total Clusters" value={stats.totalClusters}
           sub="DBSCAN identified" color="var(--clr-info)" />
-        <StatCard icon={<FiAlertTriangle size={20} />} label="Critical Zones" value={criticalCount}
+        <StatCard icon={<FiAlertTriangle size={20} />} label="Critical Zones" value={stats.criticalCount}
           sub="Immediate attention" color="var(--clr-danger)" />
-        <StatCard icon={<FiTrendingUp size={20} />} label="Total Incidents" value={totalIncidents.toLocaleString()}
+        <StatCard icon={<FiTrendingUp size={20} />} label="Total Incidents" value={stats.totalIncidents.toLocaleString()}
           sub="In all clusters" color="var(--clr-warning)" />
-        <StatCard icon={<FiShield size={20} />} label="Avg ARI Score" value={avgAri}
+        <StatCard icon={<FiShield size={20} />} label="Avg ARI Score" value={stats.avgAri}
           sub="Across all clusters" color="var(--clr-primary)" />
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Charts row - responsive grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4">
         <ChartCard title="Top Clusters by ARI Score" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={topClusters}>
@@ -124,39 +160,31 @@ export default function Dashboard() {
         </ChartCard>
       </div>
 
-      {/* Cluster table */}
+      {/* Cluster table - responsive with horizontal scroll */}
       <ChartCard title="Cluster Overview">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ color: 'var(--clr-text-muted)' }}>
-                <th className="text-left py-2 px-3 font-medium">Cluster</th>
-                <th className="text-left py-2 px-3 font-medium">Incidents</th>
-                <th className="text-left py-2 px-3 font-medium">ARI Score</th>
-                <th className="text-left py-2 px-3 font-medium">Risk Tier</th>
-                <th className="text-left py-2 px-3 font-medium">Location</th>
-              </tr>
-            </thead>
-            <tbody>
-              {features.slice(0, 10).map((f, i) => {
-                const p = f.properties || {};
-                const [lon, lat] = f.geometry?.coordinates || [0, 0];
-                return (
-                  <tr key={i} className="border-t" style={{ borderColor: 'var(--clr-border)' }}>
-                    <td className="py-2.5 px-3 font-medium">C-{p.Cluster_ID}</td>
-                    <td className="py-2.5 px-3">{p.Incident_Count}</td>
-                    <td className="py-2.5 px-3 font-mono">{(p.ARI_Score || 0).toFixed(3)}</td>
-                    <td className="py-2.5 px-3"><RiskBadge tier={p.Risk_Tier} /></td>
-                    <td className="py-2.5 px-3" style={{ color: 'var(--clr-text-muted)' }}>
-                      {lat?.toFixed(4)}, {lon?.toFixed(4)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <table className="w-full text-xs sm:text-sm">
+              <thead>
+                <tr style={{ color: 'var(--clr-text-muted)' }}>
+                  <th className="text-left py-2 px-2 sm:px-3 font-medium whitespace-nowrap">Cluster</th>
+                  <th className="text-left py-2 px-2 sm:px-3 font-medium whitespace-nowrap">Incidents</th>
+                  <th className="text-left py-2 px-2 sm:px-3 font-medium whitespace-nowrap">ARI Score</th>
+                  <th className="text-left py-2 px-2 sm:px-3 font-medium whitespace-nowrap">Risk Tier</th>
+                  <th className="text-left py-2 px-2 sm:px-3 font-medium whitespace-nowrap">Location</th>
+                </tr>
+              </thead>
+              <tbody>
+                {features.slice(0, 10).map((f, i) => (
+                  <ClusterRow key={f.properties?.Cluster_ID || i} feature={f} index={i} />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </ChartCard>
     </div>
   );
 }
+
+export default memo(Dashboard);

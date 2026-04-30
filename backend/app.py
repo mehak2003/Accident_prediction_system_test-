@@ -8,6 +8,7 @@ and configures CORS for frontend consumption.
 import os, sys
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_compress import Compress
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -19,7 +20,37 @@ from routes.upload import upload_bp
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+
+    # Enable gzip compression for all responses
+    Compress(app)
+
+    # Production configuration
+    app.config['JSON_SORT_KEYS'] = False
+    app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+    app.config['COMPRESS_MIMETYPES'] = [
+        'text/html', 'text/css', 'text/xml', 'application/json',
+        'application/javascript', 'text/javascript'
+    ]
+    app.config['COMPRESS_LEVEL'] = 6
+    app.config['COMPRESS_MIN_SIZE'] = 500
+
+    # Configure CORS for production and development
+    allowed_origins = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:3000",
+        os.getenv("FRONTEND_URL", ""),  # Production frontend URL
+    ]
+
+    # Remove empty strings from allowed origins
+    allowed_origins = [origin for origin in allowed_origins if origin]
+
+    CORS(app,
+         origins=allowed_origins,
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    )
 
     app.register_blueprint(clusters_bp)
     app.register_blueprint(predictions_bp)
@@ -29,29 +60,9 @@ def create_app():
     @app.route("/")
     def index():
         return jsonify({
-            "service": "Accident Hotspot Prediction API (India)",
+            "service": "Accident Hotspot Prediction API",
             "version": "1.0.0",
-            "dataset": "Road Accident Severity in India (Kaggle)",
-            "endpoints": {
-                "clusters_geojson":    "GET  /api/clusters",
-                "cluster_detail":      "GET  /api/clusters/<id>",
-                "predict":             "POST /api/predict",
-                "eda_hourly":          "GET  /api/eda/hourly",
-                "eda_weekly":          "GET  /api/eda/weekly",
-                "eda_severity":        "GET  /api/eda/severity",
-                "eda_weather":         "GET  /api/eda/weather",
-                "eda_top_areas":       "GET  /api/eda/top_areas",
-                "eda_collision_types": "GET  /api/eda/collision_types",
-                "eda_causes":          "GET  /api/eda/causes",
-                "eda_vehicle_types":   "GET  /api/eda/vehicle_types",
-                "eda_sev_weather":     "GET  /api/eda/severity_by_weather",
-                "eda_sev_light":       "GET  /api/eda/severity_by_light",
-                "eda_summary":         "GET  /api/eda/summary",
-                "model_metrics":       "GET  /api/model/metrics",
-                "upload_csv":          "POST /api/upload",
-                "run_pipeline":        "POST /api/pipeline/run",
-                "health":              "GET  /api/health",
-            },
+            "status": "ok"
         })
 
     @app.route("/api/health")
@@ -63,10 +74,10 @@ def create_app():
         return jsonify({
             "status": "ok",
             "models_loaded": {
-                "random_forest": os.path.exists(RF_MODEL_PATH),
-                "dbscan_labels": os.path.exists(DBSCAN_MODEL_PATH),
-                "ari_data": os.path.exists(ARI_DATA_PATH),
-                "processed_data": os.path.exists(PROCESSED_DATA_PATH),
+                "rf": os.path.exists(RF_MODEL_PATH),
+                "dbscan": os.path.exists(DBSCAN_MODEL_PATH),
+                "ari": os.path.exists(ARI_DATA_PATH),
+                "data": os.path.exists(PROCESSED_DATA_PATH),
             },
         })
 
@@ -77,6 +88,6 @@ if __name__ == "__main__":
     app = create_app()
     port = int(os.getenv("FLASK_PORT", 5000))
     debug = os.getenv("FLASK_DEBUG", "1") == "1"
-    print(f"\n  Starting Accident Hotspot API (India) on http://localhost:{port}")
-    print(f"  Debug mode: {debug}\n")
+    print(f"\n  Starting API on http://localhost:{port}")
+    print(f"  Debug: {debug}\n")
     app.run(host="0.0.0.0", port=port, debug=debug)

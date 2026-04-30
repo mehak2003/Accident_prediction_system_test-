@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { FiCpu, FiAlertTriangle } from 'react-icons/fi';
 import RiskBadge from '../components/RiskBadge';
 import { predictSeverity, fetchClusters } from '../api';
@@ -20,31 +20,35 @@ const defaultForm = {
   driving_experience: '5-10yr', age_band_of_driver: '18-30',
 };
 
-function SelectField({ label, name, value, options, onChange }) {
+const SelectField = memo(({ label, name, value, options, onChange }) => {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--clr-text-muted)' }}>{label}</label>
+      <label className="block text-xs sm:text-sm font-semibold mb-2" style={{ color: 'var(--clr-text-muted)' }}>{label}</label>
       <select name={name} value={value} onChange={onChange}
-        className="w-full px-3 py-2 rounded-lg text-sm border outline-none focus:ring-2"
+        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm border outline-none focus:ring-2 transition-all"
         style={{ background: 'var(--clr-surface-2)', borderColor: 'var(--clr-border)', color: 'var(--clr-text)', '--tw-ring-color': 'var(--clr-primary)' }}>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
     </div>
   );
-}
+});
 
-function NumberField({ label, name, value, min, max, onChange }) {
+SelectField.displayName = 'SelectField';
+
+const NumberField = memo(({ label, name, value, min, max, onChange }) => {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--clr-text-muted)' }}>{label}</label>
+      <label className="block text-xs sm:text-sm font-semibold mb-2" style={{ color: 'var(--clr-text-muted)' }}>{label}</label>
       <input type="number" name={name} value={value} min={min} max={max} onChange={onChange}
-        className="w-full px-3 py-2 rounded-lg text-sm border outline-none focus:ring-2"
+        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm border outline-none focus:ring-2 transition-all"
         style={{ background: 'var(--clr-surface-2)', borderColor: 'var(--clr-border)', color: 'var(--clr-text)', '--tw-ring-color': 'var(--clr-primary)' }} />
     </div>
   );
-}
+});
 
-export default function Predict() {
+NumberField.displayName = 'NumberField';
+
+function Predict() {
   const [form, setForm] = useState(defaultForm);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -84,19 +88,20 @@ export default function Predict() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8 max-w-[1400px] mx-auto">
+      {/* Header */}
       <div>
-        <h2 className="text-xl font-bold" style={{ color: 'var(--clr-text)' }}>Risk Prediction</h2>
-        <p className="text-sm" style={{ color: 'var(--clr-text-muted)' }}>
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold" style={{ color: 'var(--clr-text)' }}>Risk Prediction</h2>
+        <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--clr-text-muted)' }}>
           Predict accident severity and ARI for specific conditions
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         {/* Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-3 rounded-xl border p-6 space-y-5"
+        <form onSubmit={handleSubmit} className="lg:col-span-3 rounded-xl sm:rounded-2xl border p-4 sm:p-6 space-y-5 shadow-lg"
           style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {clusterIds.length > 0 ? (
               <SelectField label="Cluster ID" name="cluster_id" value={form.cluster_id} options={clusterIds} onChange={handleChange} />
             ) : (
@@ -116,9 +121,9 @@ export default function Predict() {
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold text-white transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold text-white shadow-lg"
             style={{ background: loading ? 'var(--clr-border)' : 'var(--clr-primary)' }}>
-            <FiCpu size={16} />
+            <FiCpu size={18} />
             {loading ? 'Predicting...' : 'Run Prediction'}
           </button>
         </form>
@@ -126,32 +131,32 @@ export default function Predict() {
         {/* Result */}
         <div className="lg:col-span-2 space-y-4">
           {error && (
-            <div className="rounded-xl border p-5 flex items-center gap-3"
+            <div className="rounded-xl sm:rounded-2xl border p-4 sm:p-5 flex items-center gap-3 shadow-lg"
               style={{ background: '#ef444415', borderColor: '#ef444440', color: '#ef4444' }}>
-              <FiAlertTriangle size={18} />
+              <FiAlertTriangle size={20} className="shrink-0" />
               <p className="text-sm">{error}</p>
             </div>
           )}
 
           {result && (
             <>
-              <div className="rounded-xl border p-6 text-center"
+              <div className="rounded-xl sm:rounded-2xl border p-5 sm:p-6 text-center shadow-lg"
                 style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-                <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--clr-text-muted)' }}>
+                <p className="text-xs sm:text-sm uppercase tracking-wider mb-3" style={{ color: 'var(--clr-text-muted)' }}>
                   Predicted Severity
                 </p>
-                <p className="text-3xl font-bold mb-2" style={{ color: 'var(--clr-primary-light)' }}>
+                <p className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: 'var(--clr-primary-light)' }}>
                   {result.predicted_label}
                 </p>
                 <RiskBadge tier={result.risk_tier} />
               </div>
 
-              <div className="rounded-xl border p-6"
+              <div className="rounded-xl sm:rounded-2xl border p-5 sm:p-6 shadow-lg"
                 style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-                <p className="text-xs uppercase tracking-wider mb-3" style={{ color: 'var(--clr-text-muted)' }}>
+                <p className="text-xs sm:text-sm uppercase tracking-wider mb-3" style={{ color: 'var(--clr-text-muted)' }}>
                   ARI Score
                 </p>
-                <div className="relative h-4 rounded-full overflow-hidden mb-2" style={{ background: 'var(--clr-surface-2)' }}>
+                <div className="relative h-4 sm:h-5 rounded-full overflow-hidden mb-3" style={{ background: 'var(--clr-surface-2)' }}>
                   <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
                     style={{
                       width: `${(result.ari_score || 0) * 100}%`,
@@ -160,24 +165,24 @@ export default function Predict() {
                         : result.risk_tier === 'Moderate' ? '#f59e0b' : '#22c55e',
                     }} />
                 </div>
-                <p className="text-2xl font-bold font-mono" style={{ color: 'var(--clr-text)' }}>
+                <p className="text-2xl sm:text-3xl font-bold font-mono" style={{ color: 'var(--clr-text)' }}>
                   {result.ari_score}
                 </p>
               </div>
 
-              <div className="rounded-xl border p-6"
+              <div className="rounded-xl sm:rounded-2xl border p-5 sm:p-6 shadow-lg"
                 style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-                <p className="text-xs uppercase tracking-wider mb-3" style={{ color: 'var(--clr-text-muted)' }}>
+                <p className="text-xs sm:text-sm uppercase tracking-wider mb-4" style={{ color: 'var(--clr-text-muted)' }}>
                   Severity Probabilities
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {Object.entries(result.severity_probabilities || {}).map(([label, prob]) => (
                     <div key={label} className="flex items-center gap-3">
-                      <span className="text-xs w-24 shrink-0" style={{ color: 'var(--clr-text-muted)' }}>{label}</span>
-                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--clr-surface-2)' }}>
-                        <div className="h-full rounded-full" style={{ width: `${prob * 100}%`, background: 'var(--clr-primary)' }} />
+                      <span className="text-xs sm:text-sm w-20 sm:w-24 shrink-0 font-medium" style={{ color: 'var(--clr-text-muted)' }}>{label}</span>
+                      <div className="flex-1 h-2.5 sm:h-3 rounded-full overflow-hidden" style={{ background: 'var(--clr-surface-2)' }}>
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${prob * 100}%`, background: 'var(--clr-primary)' }} />
                       </div>
-                      <span className="text-xs font-mono w-12 text-right" style={{ color: 'var(--clr-text)' }}>
+                      <span className="text-xs sm:text-sm font-mono w-12 sm:w-14 text-right font-bold" style={{ color: 'var(--clr-text)' }}>
                         {(prob * 100).toFixed(1)}%
                       </span>
                     </div>
@@ -185,16 +190,16 @@ export default function Predict() {
                 </div>
               </div>
 
-              <div className="rounded-xl border p-6"
+              <div className="rounded-xl sm:rounded-2xl border p-5 sm:p-6 shadow-lg"
                 style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-                <p className="text-xs uppercase tracking-wider mb-3" style={{ color: 'var(--clr-text-muted)' }}>
+                <p className="text-xs sm:text-sm uppercase tracking-wider mb-4" style={{ color: 'var(--clr-text-muted)' }}>
                   ARI Weights
                 </p>
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center">
                   {Object.entries(result.weights || {}).map(([k, v]) => (
                     <div key={k}>
-                      <p className="text-lg font-bold font-mono" style={{ color: 'var(--clr-primary-light)' }}>{v}</p>
-                      <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>{k.replace('_', ' ')}</p>
+                      <p className="text-lg sm:text-xl font-bold font-mono" style={{ color: 'var(--clr-primary-light)' }}>{v}</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--clr-text-muted)' }}>{k.replace('_', ' ')}</p>
                     </div>
                   ))}
                 </div>
@@ -203,11 +208,11 @@ export default function Predict() {
           )}
 
           {!result && !error && (
-            <div className="rounded-xl border p-10 text-center"
+            <div className="rounded-xl sm:rounded-2xl border p-8 sm:p-10 text-center shadow-lg"
               style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-              <FiCpu size={40} className="mx-auto mb-3" style={{ color: 'var(--clr-border)' }} />
+              <FiCpu size={40} className="mx-auto mb-3 opacity-30" style={{ color: 'var(--clr-border)' }} />
               <p className="text-sm" style={{ color: 'var(--clr-text-muted)' }}>
-                No prediction data available
+                Fill the form and run prediction
               </p>
             </div>
           )}
@@ -216,3 +221,5 @@ export default function Predict() {
     </div>
   );
 }
+
+export default memo(Predict);

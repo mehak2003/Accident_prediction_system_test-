@@ -84,6 +84,33 @@ def upload_csv():
     f.save(RAW_DATA_PATH)
     size = os.path.getsize(RAW_DATA_PATH)
 
+    # Validate CSV format
+    try:
+        import pandas as pd
+        df = pd.read_csv(RAW_DATA_PATH, nrows=5)
+        
+        # Required columns for the accident dataset
+        required_cols = [
+            'Accident_severity', 'Time', 'Day_of_week', 'Area_accident_occured',
+            'Weather_conditions', 'Light_conditions', 'Road_surface_conditions',
+            'Type_of_collision', 'Cause_of_accident'
+        ]
+        
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        
+        if missing_cols:
+            os.remove(RAW_DATA_PATH)  # Remove invalid file
+            return jsonify({
+                "error": f"Invalid CSV format. Missing required columns: {', '.join(missing_cols)}",
+                "hint": "This system requires detailed accident records, not summary statistics. See the Data page for the complete list of 19 required columns.",
+                "your_columns": list(df.columns),
+                "required_columns": required_cols
+            }), 400
+            
+    except Exception as e:
+        os.remove(RAW_DATA_PATH)
+        return jsonify({"error": f"Failed to read CSV: {str(e)}"}), 400
+
     entry = {
         "id": str(uuid.uuid4()),
         "filename": f.filename,

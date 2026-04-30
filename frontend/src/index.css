@@ -18,7 +18,7 @@
   --clr-map-bg: #0f1117;
   --clr-tooltip-bg: #1a1d27;
   --clr-tooltip-border: #2e3348;
-  --clr-shadow: rgba(0,0,0,.4);
+  --clr-shadow: rgba(0,0,0,.2);
 }
 
 /* ── Light Theme ── */
@@ -38,10 +38,16 @@
   --clr-map-bg: #e8e8e8;
   --clr-tooltip-bg: #ffffff;
   --clr-tooltip-border: #d4d8e1;
-  --clr-shadow: rgba(0,0,0,.1);
+  --clr-shadow: rgba(0,0,0,.05);
 }
 
-* { box-sizing: border-box; }
+* { 
+  box-sizing: border-box; 
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
@@ -49,23 +55,60 @@ body {
   background: var(--clr-bg);
   color: var(--clr-text);
   -webkit-font-smoothing: antialiased;
-  transition: background 0.25s ease, color 0.25s ease;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Leaflet overrides */
-.leaflet-container { background: var(--clr-map-bg); }
+.leaflet-container { 
+  background: var(--clr-map-bg); 
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transform: translate3d(0,0,0);
+  will-change: transform;
+}
+
+.leaflet-tile-container {
+  transform: translate3d(0,0,0);
+}
+
+.leaflet-zoom-animated {
+  will-change: transform;
+}
+
 .leaflet-popup-content-wrapper {
   background: var(--clr-surface) !important;
   color: var(--clr-text) !important;
   border-radius: 12px !important;
-  box-shadow: 0 8px 32px var(--clr-shadow) !important;
+  box-shadow: 0 2px 12px var(--clr-shadow) !important;
 }
-.leaflet-popup-tip { background: var(--clr-surface) !important; }
+
+.leaflet-popup-tip { 
+  background: var(--clr-surface) !important; 
+}
+
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+  transform: translate3d(0,0,0);
+}
+
+.leaflet-pane {
+  transform: translate3d(0,0,0);
+}
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--clr-bg); }
-::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 3px; }
+::-webkit-scrollbar { 
+  width: 8px; 
+  height: 8px;
+}
+::-webkit-scrollbar-track { 
+  background: var(--clr-bg); 
+}
+::-webkit-scrollbar-thumb { 
+  background: var(--clr-border); 
+  border-radius: 4px; 
+}
+::-webkit-scrollbar-thumb:hover { 
+  background: var(--clr-text-muted); 
+}
 
 /* Recharts tooltip */
 .recharts-default-tooltip {
@@ -73,4 +116,85 @@ body {
   border: 1px solid var(--clr-tooltip-border) !important;
   border-radius: 8px !important;
   color: var(--clr-text) !important;
+  box-shadow: 0 2px 8px var(--clr-shadow) !important;
+}
+
+/* Animations */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: var(--clr-primary);
+  color: white;
+}
+
+/* Smooth transitions for interactive elements */
+button, a {
+  transition: opacity 0.15s ease;
+}
+
+input, select, textarea {
+  transition: border-color 0.15s ease;
+}
+
+/* Mobile tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on buttons */
+button {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* GPU acceleration for animations */
+.gpu-accelerated {
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    text-rendering: optimizeSpeed;
+  }
+  
+  img, svg {
+    content-visibility: auto;
+  }
 }

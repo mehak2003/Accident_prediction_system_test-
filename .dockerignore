@@ -1,0 +1,16 @@
+**/__pycache__
+**/*.pyc
+.venv
+venv
+env
+.git
+.gitignore
+frontend
+paper
+README.md
+*.md
+.DS_Store
+backend/output/plots
+backend/output/metrics
+backend/output/tables
+backend/data/*.csv

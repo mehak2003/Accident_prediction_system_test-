@@ -1,6 +1,7 @@
 """API routes for spatial cluster data and GeoJSON serving."""
 
 from flask import Blueprint, jsonify, request
+from functools import lru_cache
 import joblib
 import os, sys
 
@@ -10,6 +11,10 @@ from utils.geojson_utils import clusters_to_geojson
 from utils.db import get_connection
 
 clusters_bp = Blueprint("clusters", __name__)
+
+# Cache cluster data in memory
+_cached_clusters = None
+_cache_timestamp = 0
 
 
 def _load_clusters_from_file():
@@ -49,13 +54,39 @@ def _load_clusters_from_db():
     return rows
 
 
-@clusters_bp.route("/api/clusters", methods=["GET"])
-def get_clusters():
-    """Return all clusters as GeoJSON. Accepts ?format=json for raw list."""
+def _get_cached_clusters():
+    """Get clusters with caching."""
+    global _cached_clusters, _cache_timestamp
+    import time
+    
+    current_time = time.time()
+    # Cache for 5 minutes
+    if _cached_clusters is not None and (current_time - _cache_timestamp) < 300:
+        return _cached_clusters
+    
     try:
         rows = _load_clusters_from_db()
     except Exception:
-        rows = _load_clusters_from_file()
+        try:
+            rows = _load_clusters_from_file()
+        except Exception:
+            return []
+    
+    _cached_clusters = rows
+    _cache_timestamp = current_time
+    return rows
+
+
+@clusters_bp.route("/api/clusters", methods=["GET"])
+def get_clusters():
+    """Return all clusters as GeoJSON. Accepts ?format=json for raw list."""
+    rows = _get_cached_clusters()
+    
+    if not rows:
+        fmt = request.args.get("format", "geojson")
+        if fmt == "json":
+            return jsonify([])
+        return jsonify({"type": "FeatureCollection", "features": []})
 
     fmt = request.args.get("format", "geojson")
     if fmt == "json":
@@ -90,7 +121,6 @@ def get_cluster_detail(cluster_id):
         """, (cluster_id,))
         accidents = cur.fetchall()
 
-        # Stringify datetimes for JSON serialisation
         for a in accidents:
             if a.get("Timestamp"):
                 a["Timestamp"] = str(a["Timestamp"])

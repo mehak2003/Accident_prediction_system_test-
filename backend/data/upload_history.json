@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "de0dc5a5-b621-4059-ad97-5296d24ad9f8",
+    "filename": "Road.csv",
+    "uploaded_at": "2026-04-26T16:08:15Z",
+    "size_bytes": 4302433,
+    "status": "complete",
+    "pipeline_result": {
+      "completed_at": "2026-04-26T16:08:18Z",
+      "records": 12316,
+      "clusters": 12,
+      "accuracy": 0.8454,
+      "ari_range": [
+        0.0143,
+        0.7535
+      ]
+    }
+  }
+]

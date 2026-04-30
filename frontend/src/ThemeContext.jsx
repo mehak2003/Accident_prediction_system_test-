@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, memo } from 'react';
 
 const ThemeContext = createContext();
 
-export function ThemeProvider({ children }) {
+export const ThemeProvider = memo(({ children }) => {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
 
   useEffect(() => {
@@ -12,11 +12,15 @@ export function ThemeProvider({ children }) {
 
   const toggle = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'));
 
+  const value = useMemo(() => ({ theme, toggle }), [theme]);
+
   return (
-    <ThemeContext.Provider value={{ theme, toggle }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
-}
+});
+
+ThemeProvider.displayName = 'ThemeProvider';
 
 export const useTheme = () => useContext(ThemeContext);

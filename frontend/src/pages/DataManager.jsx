@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import {
   FiUploadCloud, FiPlay, FiCheckCircle, FiXCircle,
   FiTrash2, FiClock, FiDatabase, FiInfo, FiAlertTriangle,
@@ -46,7 +46,7 @@ const STATUS_STYLE = {
 };
 
 // ─── component ───────────────────────────────────────────────────────────────
-export default function DataManager() {
+function DataManager() {
   const fileRef = useRef();
   const [uploadStatus, setUploadStatus]   = useState(null);
   const [pipelineStatus, setPipelineStatus] = useState(null);
@@ -99,32 +99,33 @@ export default function DataManager() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-4 sm:space-y-6 max-w-[1200px] mx-auto">
+      {/* Header */}
       <div>
-        <h2 className="text-xl font-bold" style={{ color: 'var(--clr-text)' }}>Data Manager</h2>
-        <p className="text-sm" style={{ color: 'var(--clr-text-muted)' }}>Upload datasets and manage the ML pipeline</p>
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold" style={{ color: 'var(--clr-text)' }}>Data Manager</h2>
+        <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--clr-text-muted)' }}>Upload datasets and manage the ML pipeline</p>
       </div>
 
       {/* ── Upload ─────────────────────────────────────────────────────────── */}
-      <div className="rounded-xl border p-6 space-y-4"
+      <div className="rounded-xl sm:rounded-2xl border p-4 sm:p-6 space-y-4 shadow-lg"
         style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: 'var(--clr-primary)20', color: 'var(--clr-primary)' }}>
             <FiUploadCloud size={20} />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--clr-text)' }}>Upload CSV Dataset</h3>
-            <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>Select a road accident CSV file to upload</p>
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-base font-bold" style={{ color: 'var(--clr-text)' }}>Upload CSV Dataset</h3>
+            <p className="text-xs sm:text-sm" style={{ color: 'var(--clr-text-muted)' }}>Select a road accident CSV file to upload</p>
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input ref={fileRef} type="file" accept=".csv"
-            className="flex-1 text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer"
+            className="flex-1 text-xs sm:text-sm file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-medium file:cursor-pointer"
             style={{ color: 'var(--clr-text-muted)' }} />
           <button onClick={handleUpload} disabled={uploading}
-            className="px-5 py-2 rounded-lg text-sm font-medium text-white shrink-0"
+            className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm font-bold text-white shrink-0 shadow-lg"
             style={{ background: uploading ? 'var(--clr-border)' : 'var(--clr-primary)' }}>
             {uploading ? 'Uploading…' : 'Upload'}
           </button>
@@ -139,19 +140,19 @@ export default function DataManager() {
 
         {/* CSV format guide toggle */}
         <button onClick={() => setShowFormat(v => !v)}
-          className="flex items-center gap-2 text-xs font-medium mt-1"
+          className="flex items-center gap-2 text-xs sm:text-sm font-semibold mt-1 transition-colors"
           style={{ color: 'var(--clr-primary-light)' }}>
-          <FiInfo size={13} />
+          <FiInfo size={14} />
           {showFormat ? 'Hide' : 'Show'} expected CSV format &amp; column reference
         </button>
 
         {showFormat && (
-          <div className="rounded-lg border p-4 space-y-3 text-xs"
+          <div className="rounded-xl border p-4 space-y-3 text-xs sm:text-sm"
             style={{ background: 'var(--clr-surface-2)', borderColor: 'var(--clr-border)' }}>
 
             {/* Summary */}
             <div className="space-y-1">
-              <p className="font-semibold" style={{ color: 'var(--clr-text)' }}>File requirements</p>
+              <p className="font-bold" style={{ color: 'var(--clr-text)' }}>File requirements</p>
               <ul className="space-y-0.5 list-disc list-inside" style={{ color: 'var(--clr-text-muted)' }}>
                 <li>Format: <strong>CSV</strong> with a header row</li>
                 <li>Encoding: <strong>UTF-8</strong></li>
@@ -162,9 +163,9 @@ export default function DataManager() {
 
             {/* First CSV line example */}
             <div className="space-y-1">
-              <p className="font-semibold" style={{ color: 'var(--clr-text)' }}>Sample header row</p>
-              <div className="rounded p-2 overflow-x-auto font-mono leading-relaxed"
-                style={{ background: 'var(--clr-border)', color: 'var(--clr-text)', fontSize: 11 }}>
+              <p className="font-bold" style={{ color: 'var(--clr-text)' }}>Sample header row</p>
+              <div className="rounded p-2 overflow-x-auto font-mono leading-relaxed text-xs"
+                style={{ background: 'var(--clr-border)', color: 'var(--clr-text)' }}>
                 Time,Day_of_week,Age_band_of_driver,Driving_experience,Type_of_vehicle,Area_accident_occured,
                 Lanes_or_Medians,Road_allignment,Types_of_Junction,Road_surface_type,Road_surface_conditions,
                 Light_conditions,Weather_conditions,Type_of_collision,Number_of_vehicles_involved,
@@ -174,36 +175,38 @@ export default function DataManager() {
 
             {/* Column table */}
             <div className="space-y-1">
-              <p className="font-semibold" style={{ color: 'var(--clr-text)' }}>Required columns ({REQUIRED_COLUMNS.length})</p>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr style={{ color: 'var(--clr-text-muted)', borderBottom: '1px solid var(--clr-border)' }}>
-                      <th className="text-left py-1.5 pr-4 font-medium whitespace-nowrap">Column</th>
-                      <th className="text-left py-1.5 pr-4 font-medium">Type</th>
-                      <th className="text-left py-1.5 pr-4 font-medium">Example values</th>
-                      <th className="text-left py-1.5 font-medium">Note</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {REQUIRED_COLUMNS.map(({ col, type, example, note }) => (
-                      <tr key={col} style={{ borderBottom: '1px solid var(--clr-border)' }}>
-                        <td className="py-1.5 pr-4 font-mono whitespace-nowrap"
-                          style={{ color: 'var(--clr-primary-light)' }}>{col}</td>
-                        <td className="py-1.5 pr-4" style={{ color: 'var(--clr-text-muted)' }}>{type}</td>
-                        <td className="py-1.5 pr-4" style={{ color: 'var(--clr-text)' }}>{example}</td>
-                        <td className="py-1.5" style={{ color: 'var(--clr-text-muted)', fontStyle: note ? 'italic' : 'normal' }}>{note || ''}</td>
+              <p className="font-bold" style={{ color: 'var(--clr-text)' }}>Required columns ({REQUIRED_COLUMNS.length})</p>
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+                  <table className="w-full border-collapse text-xs">
+                    <thead>
+                      <tr style={{ color: 'var(--clr-text-muted)', borderBottom: '1px solid var(--clr-border)' }}>
+                        <th className="text-left py-2 pr-3 font-semibold whitespace-nowrap">Column</th>
+                        <th className="text-left py-2 pr-3 font-semibold">Type</th>
+                        <th className="text-left py-2 pr-3 font-semibold">Example values</th>
+                        <th className="text-left py-2 font-semibold">Note</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {REQUIRED_COLUMNS.map(({ col, type, example, note }) => (
+                        <tr key={col} style={{ borderBottom: '1px solid var(--clr-border)' }}>
+                          <td className="py-2 pr-3 font-mono whitespace-nowrap"
+                            style={{ color: 'var(--clr-primary-light)' }}>{col}</td>
+                          <td className="py-2 pr-3" style={{ color: 'var(--clr-text-muted)' }}>{type}</td>
+                          <td className="py-2 pr-3" style={{ color: 'var(--clr-text)' }}>{example}</td>
+                          <td className="py-2" style={{ color: 'var(--clr-text-muted)', fontStyle: note ? 'italic' : 'normal' }}>{note || ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
             {/* Severity mapping */}
-            <div className="flex gap-6 pt-1">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-1">
               <div>
-                <p className="font-semibold mb-1" style={{ color: 'var(--clr-text)' }}>Accident_severity mapping</p>
+                <p className="font-bold mb-1" style={{ color: 'var(--clr-text)' }}>Accident_severity mapping</p>
                 <div className="space-y-0.5" style={{ color: 'var(--clr-text-muted)' }}>
                   <p><span className="font-mono" style={{ color: '#22c55e' }}>Slight Injury</span>  →  1</p>
                   <p><span className="font-mono" style={{ color: '#f59e0b' }}>Serious Injury</span> →  2</p>
@@ -211,7 +214,7 @@ export default function DataManager() {
                 </div>
               </div>
               <div>
-                <p className="font-semibold mb-1" style={{ color: 'var(--clr-text)' }}>Weather → binned category</p>
+                <p className="font-bold mb-1" style={{ color: 'var(--clr-text)' }}>Weather → binned category</p>
                 <div className="space-y-0.5" style={{ color: 'var(--clr-text-muted)' }}>
                   <p>Normal, Cloudy → Clear</p>
                   <p>Raining → Rain</p>
@@ -225,16 +228,16 @@ export default function DataManager() {
       </div>
 
       {/* ── Pipeline ───────────────────────────────────────────────────────── */}
-      <div className="rounded-xl border p-6 space-y-4"
+      <div className="rounded-xl sm:rounded-2xl border p-4 sm:p-6 space-y-4 shadow-lg"
         style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: '#22c55e20', color: '#22c55e' }}>
             <FiPlay size={20} />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--clr-text)' }}>Run ML Pipeline</h3>
-            <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-base font-bold" style={{ color: 'var(--clr-text)' }}>Run ML Pipeline</h3>
+            <p className="text-xs sm:text-sm" style={{ color: 'var(--clr-text-muted)' }}>
               Preprocess → EDA → DBSCAN → Random Forest → ARI
             </p>
           </div>
@@ -243,7 +246,7 @@ export default function DataManager() {
         <div className="flex items-center gap-2 flex-wrap">
           {['Preprocess', 'EDA', 'DBSCAN', 'Classifier', 'ARI'].map((step, i) => (
             <div key={step} className="flex items-center gap-2">
-              <span className="px-3 py-1.5 rounded-lg text-xs font-medium"
+              <span className="px-3 py-1.5 rounded-xl text-xs font-semibold"
                 style={{ background: 'var(--clr-surface-2)', color: 'var(--clr-text-muted)' }}>
                 {step}
               </span>
@@ -253,9 +256,9 @@ export default function DataManager() {
         </div>
 
         <button onClick={handlePipeline} disabled={running}
-          className="w-full py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2"
+          className="w-full py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold text-white flex items-center justify-center gap-2 shadow-lg"
           style={{ background: running ? 'var(--clr-border)' : '#22c55e' }}>
-          <FiPlay size={16} />
+          <FiPlay size={18} />
           {running ? 'Running pipeline… (this may take a few minutes)' : 'Run Full Pipeline'}
         </button>
 
@@ -268,22 +271,22 @@ export default function DataManager() {
       </div>
 
       {/* ── Upload history ─────────────────────────────────────────────────── */}
-      <div className="rounded-xl border" style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b"
+      <div className="rounded-xl sm:rounded-2xl border shadow-lg" style={{ background: 'var(--clr-surface)', borderColor: 'var(--clr-border)' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 border-b"
           style={{ borderColor: 'var(--clr-border)' }}>
           <div className="flex items-center gap-2">
-            <FiClock size={16} style={{ color: 'var(--clr-text-muted)' }} />
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--clr-text)' }}>
+            <FiClock size={18} style={{ color: 'var(--clr-text-muted)' }} />
+            <h3 className="text-sm sm:text-base font-bold" style={{ color: 'var(--clr-text)' }}>
               Upload History
             </h3>
-            <span className="text-xs px-2 py-0.5 rounded-full"
+            <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
               style={{ background: 'var(--clr-surface-2)', color: 'var(--clr-text-muted)' }}>
               {history.length}
             </span>
           </div>
           {history.length > 0 && (
             <button onClick={loadHistory}
-              className="text-xs px-3 py-1.5 rounded-lg"
+              className="text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl font-semibold"
               style={{ background: 'var(--clr-surface-2)', color: 'var(--clr-text-muted)' }}>
               Refresh
             </button>
@@ -291,8 +294,8 @@ export default function DataManager() {
         </div>
 
         {history.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 gap-3">
-            <FiDatabase size={32} style={{ color: 'var(--clr-border)' }} />
+          <div className="flex flex-col items-center justify-center py-12 sm:py-16 gap-3">
+            <FiDatabase size={40} style={{ color: 'var(--clr-border)' }} />
             <p className="text-sm" style={{ color: 'var(--clr-text-muted)' }}>No uploads yet</p>
           </div>
         ) : (
@@ -301,24 +304,24 @@ export default function DataManager() {
               const s = STATUS_STYLE[entry.status] || STATUS_STYLE.uploaded;
               const pr = entry.pipeline_result;
               return (
-                <div key={entry.id} className="px-6 py-4 space-y-3">
+                <div key={entry.id} className="px-4 sm:px-6 py-4 sm:py-5 space-y-3">
                   {/* Row header */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <FiDatabase size={16} style={{ color: 'var(--clr-text-muted)', flexShrink: 0 }} />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--clr-text)' }}>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <FiDatabase size={18} style={{ color: 'var(--clr-text-muted)', flexShrink: 0 }} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold truncate" style={{ color: 'var(--clr-text)' }}>
                           {entry.filename}
                         </p>
-                        <p className="text-xs" style={{ color: 'var(--clr-text-muted)' }}>
+                        <p className="text-xs sm:text-sm" style={{ color: 'var(--clr-text-muted)' }}>
                           {fmtDate(entry.uploaded_at)} · {fmtBytes(entry.size_bytes)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
                       {/* Status badge */}
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full"
+                      <span className="text-xs font-bold px-3 py-1.5 rounded-full"
                         style={{ background: s.bg, color: s.color }}>
                         {s.label}
                       </span>
@@ -328,11 +331,11 @@ export default function DataManager() {
                         title="Remove from history"
                         disabled={deleting === entry.id}
                         onClick={() => handleDelete(entry.id, false)}
-                        className="p-1.5 rounded-lg transition-colors"
+                        className="p-2 rounded-xl transition-colors"
                         style={{ color: 'var(--clr-text-muted)', background: 'transparent' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#ef444420'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <FiXCircle size={15} />
+                        <FiXCircle size={16} />
                       </button>
 
                       {/* Delete + clear artifacts */}
@@ -343,28 +346,28 @@ export default function DataManager() {
                           if (window.confirm('Delete this entry and clear all generated models, EDA files, and the uploaded CSV?\n\nThe dashboard will go back to an empty state.'))
                             handleDelete(entry.id, true);
                         }}
-                        className="p-1.5 rounded-lg flex items-center gap-1 text-xs font-medium transition-colors"
+                        className="p-2 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors"
                         style={{ color: '#ef4444', background: '#ef444410' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#ef444425'}
                         onMouseLeave={e => e.currentTarget.style.background = '#ef444410'}>
-                        <FiTrash2 size={13} /> Clear data
+                        <FiTrash2 size={14} /> <span className="hidden sm:inline">Clear data</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Pipeline result metrics */}
                   {entry.status === 'complete' && pr && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                       {[
                         { label: 'Records',   value: pr.records?.toLocaleString() ?? '—' },
                         { label: 'Clusters',  value: pr.clusters ?? '—' },
                         { label: 'Accuracy',  value: pr.accuracy != null ? `${(pr.accuracy * 100).toFixed(1)}%` : '—' },
                         { label: 'ARI Range', value: pr.ari_range ? `${pr.ari_range[0]} – ${pr.ari_range[1]}` : '—' },
                       ].map(({ label, value }) => (
-                        <div key={label} className="rounded-lg px-4 py-3"
+                        <div key={label} className="rounded-xl px-3 sm:px-4 py-3"
                           style={{ background: 'var(--clr-surface-2)' }}>
                           <p className="text-xs mb-1" style={{ color: 'var(--clr-text-muted)' }}>{label}</p>
-                          <p className="text-sm font-semibold font-mono" style={{ color: 'var(--clr-text)' }}>{value}</p>
+                          <p className="text-sm font-bold font-mono" style={{ color: 'var(--clr-text)' }}>{value}</p>
                         </div>
                       ))}
                     </div>
@@ -372,9 +375,9 @@ export default function DataManager() {
 
                   {/* Error message */}
                   {entry.status === 'failed' && pr?.error && (
-                    <div className="flex items-start gap-2 rounded-lg p-3 text-xs"
+                    <div className="flex items-start gap-2 rounded-xl p-3 text-xs"
                       style={{ background: '#ef444410', color: '#ef4444' }}>
-                      <FiAlertTriangle size={13} className="mt-0.5 shrink-0" />
+                      <FiAlertTriangle size={14} className="mt-0.5 shrink-0" />
                       <span className="font-mono break-all">{pr.error}</span>
                     </div>
                   )}
@@ -394,3 +397,5 @@ export default function DataManager() {
     </div>
   );
 }
+
+export default memo(DataManager);
